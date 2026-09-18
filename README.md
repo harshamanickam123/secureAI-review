@@ -20,6 +20,8 @@ Traditional Static Application Security Testing (SAST) tools generate opaque rul
 4. **Human-in-the-Loop Safeguard**: AI fixes are explicitly presented as suggestions for developer review — **no code changes are ever auto-applied**.
 5. **Severity Cross-Check**: Compares static rule severity against LLM evaluation, flagging discrepancies (≥ 2 levels) with a visible conflict badge.
 
+---
+
 ## Solution
 
 SecureAI Review combines both: **Semgrep finds real vulnerabilities, an LLM explains and prioritizes them.** Static analysis determines what's real; AI determines what it means. Every AI-only finding is explicitly labeled as such — never presented with the same confidence as a verified finding.
@@ -30,16 +32,27 @@ Static analysis stays the source of truth. AI never gets to invent a vulnerabili
 
 ---
 
-
 ## 📸 Screenshots
 
-*(Placeholder for application screenshots)*
-- **Dashboard** : `docs/screenshots/input.png`
-- **Code Input** : `docs/screenshots/input1.png`
--**Github Repo Input** : `docs/screenshots/input2.png`
-- **Scanning**: `docs/screenshots/scan.png`
-- **Security Findings & AI Explanations**: `docs/screenshots/scan1.png`
+### Dashboard
 
+![Dashboard](docs/screenshots/input.png)
+
+### Code Input
+
+![Code Input](docs/screenshots/input2.png)
+
+### GitHub Repository Input
+
+![GitHub Repository Input](docs/screenshots/input3.png)
+
+### Scanning
+
+![Scanning](docs/screenshots/scan.png)
+
+### Security Findings & AI Explanations
+
+![Security Findings and AI Explanations](docs/screenshots/scan1.png)
 
 ---
 
@@ -148,3 +161,5 @@ python verify_e2e.py
 ---
 
 **HARSHAVARDHINI N** — CodeMyFYP Hackathon, Developer Productivity Track
+
+---
