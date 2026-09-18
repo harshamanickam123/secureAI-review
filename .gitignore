@@ -1,0 +1,29 @@
+# Environment and secret files
+.env
+.env.local
+.env.*.local
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Python caches and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.tmp
+*.temp
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+build/
+dist/
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

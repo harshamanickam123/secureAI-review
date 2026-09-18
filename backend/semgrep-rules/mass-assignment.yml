@@ -1,0 +1,30 @@
+rules:
+  - id: express-mongoose-mass-assignment
+    languages:
+      - javascript
+      - typescript
+    message: >-
+      Detected potential Mass Assignment vulnerability: passing `req.body` directly to Mongoose model method (`$METHOD(...)`).
+      Attackers can overwrite protected fields (such as `role`, `isAdmin`, `isSuperuser`, `passwordHash`) by injecting unauthorized fields into the request payload.
+      Remediate by explicitly allow-listing or destructuring permitted fields (e.g. `const { name, email } = req.body;`).
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: "CWE-915: Improperly Controlled Modification of Dynamically-Determined Object Attributes"
+      owasp: "A08:2021 - Software and Data Integrity Failures"
+      confidence: HIGH
+    patterns:
+      - pattern-either:
+          - pattern: $MODEL.create(..., <... $REQ.body ...>, ...)
+          - pattern: $MODEL.create($REQ.body)
+          - pattern: $MODEL.update(..., <... $REQ.body ...>, ...)
+          - pattern: $MODEL.updateOne(..., <... $REQ.body ...>, ...)
+          - pattern: $MODEL.updateMany(..., <... $REQ.body ...>, ...)
+          - pattern: $MODEL.findByIdAndUpdate($ID, $REQ.body, ...)
+          - pattern: $MODEL.findOneAndUpdate($QUERY, $REQ.body, ...)
+          - pattern: $MODEL.replaceOne(..., $REQ.body, ...)
+          - pattern: $MODEL.insertMany($REQ.body, ...)
+          - pattern: new $MODEL($REQ.body)
+      - metavariable-regex:
+          metavariable: $REQ
+          regex: ^(req|request)$
