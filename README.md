@@ -1,6 +1,11 @@
-# SecureAI Review 🛡️🤖
+# 🛡️ SecureAI Review
 
-> **AI-Powered Secure Code Review Engine** combining deterministic AST static analysis (**Semgrep**) with contextual security explanations and remediation suggestions (**Groq Llama 3.3 70B**).
+**AI-powered secure code review — real static analysis explained in plain English.**
+
+🔗 **Live Demo:** [secureai-review.onrender.com](https://secureai-review.onrender.com)
+🔗 **API:** [secureai-review-backend.onrender.com](https://secureai-review.onrender.com)
+
+Built for the CodeMyFYP Hackathon — Developer Productivity Track.
 
 ---
 
@@ -15,187 +20,131 @@ Traditional Static Application Security Testing (SAST) tools generate opaque rul
 4. **Human-in-the-Loop Safeguard**: AI fixes are explicitly presented as suggestions for developer review — **no code changes are ever auto-applied**.
 5. **Severity Cross-Check**: Compares static rule severity against LLM evaluation, flagging discrepancies (≥ 2 levels) with a visible conflict badge.
 
----
+## Solution
 
-## 🏗️ Architecture
+SecureAI Review combines both: **Semgrep finds real vulnerabilities, an LLM explains and prioritizes them.** Static analysis determines what's real; AI determines what it means. Every AI-only finding is explicitly labeled as such — never presented with the same confidence as a verified finding.
 
-```text
-[ Developer Browser / Next.js UI ]
-           │
-           │ (1) POST /api/scan  (Code Snippet)
-           ▼
-[ FastAPI Backend Engine ] ──► (Returns scan_id immediately; runs BackgroundTask)
-           │
-           ├─► (2) Semgrep Subprocess Engine (60s timeout, language-specific AST scan)
-           │
-           ├─► (3) Secret Redaction Layer (Masks AWS, GitHub, OpenAI, passwords before LLM)
-           │
-           ├─► (4) Groq API (llama-3.3-70b-versatile, structured JSON output)
-           │
-           ├─► (5) Severity Cross-Checker (Flags AST vs. LLM discrepancies)
-           │
-           ▼
-[ MySQL Database / In-Memory Fallback ] ──► Scans & Findings tables
-           ▲
-           │ (6) Polling GET /api/scan/{scan_id} every 2 seconds
-           │
-[ Developer Browser / Next.js UI ] ──► Color-coded findings, explanations, and remediation
-```
+SecureAI Review makes security review fast enough to actually happen. Semgrep finds what's real; an LLM explains what it means — turning a wall of cryptic rule IDs into plain-English answers a developer can act on in seconds, not a security course they need to take first.
+
+Static analysis stays the source of truth. AI never gets to invent a vulnerability — it only gets to explain one, or clearly flag when it's making an educated guess beyond what the static engine could verify. The result: the trustworthiness of a real security tool, with the usability of asking a colleague "what's wrong with this code, and how do I fix it?"
 
 ---
+
 
 ## 📸 Screenshots
 
 *(Placeholder for application screenshots)*
-- **Dashboard & Code Input**: `docs/screenshots/dashboard.png`
-- **Security Findings & AI Explanations**: `docs/screenshots/findings.png`
-- **Remediation & Severity Conflict Badge**: `docs/screenshots/remediation.png`
+- **Dashboard** : `docs/screenshots/input.png`
+- **Code Input** : `docs/screenshots/input1.png`
+-**Github Repo Input** : `docs/screenshots/input2.png`
+- **Scanning**: `docs/screenshots/scan.png`
+- **Security Findings & AI Explanations**: `docs/screenshots/scan1.png`
+
 
 ---
 
-## 🚀 Setup & Local Installation
+## Key Features
 
-### Prerequisites
-- Python 3.10+
-- Node.js 18+ (npm 9+)
-- Local MySQL instance (optional; fallback in-memory store is supported)
-- Groq API Key (from [console.groq.com](https://console.groq.com))
+- **Three input methods** — paste code, upload a file, or scan a public GitHub repo
+- **Real detection** — Semgrep across multiple rulesets (security-audit, OWASP Top 10, Node.js-specific), plus a custom rule for Express/Mongoose mass-assignment vulnerabilities
+- **Secret redaction** — credentials are stripped before any code reaches the AI API
+- **Plain-English explanations** — what's wrong, why it matters, how to fix it
+- **Independent AI review** — when Semgrep finds nothing, the AI still reviews the code for logic-level issues, clearly labeled `AI-inferred` vs `AST-verified`
+- **Severity cross-check** — flags disagreement between Semgrep's and the AI's severity rating instead of silently picking one
+- **No auto-applied fixes** — every suggestion requires explicit human review
 
 ---
 
-### 1. Backend Setup (`/backend`)
+## Architecture
 
+```text
+                        USER
+                         │
+                         ▼
+              ┌────────────────────┐
+              │  Next.js Frontend  │
+              │       Render       │
+              └──────────┬─────────┘
+                         │ POST /api/scan
+                         ▼
+              ┌────────────────────┐
+              │  FastAPI Backend   │
+              │       Render       │
+              └──────────┬─────────┘
+                         │
+              ┌──────────┴──────────┐
+              ▼                     ▼
+        ┌───────────┐        ┌───────────┐
+        │  Semgrep  │        │    Groq   │
+        │   SAST    │        │  Llama AI │
+        └─────┬─────┘        └─────┬─────┘
+              │                     │
+              └──────────┬──────────┘
+                         ▼
+                  Security Result
+                         │
+                         ▼
+              ┌────────────────────┐
+              │   Aiven MySQL      │
+              │  (persistent, SSL) │
+              └────────────────────┘
+```
+
+Backend and frontend are both deployed on Render; the database runs on Aiven's free managed MySQL tier over an SSL-required connection. If the database is ever unreachable, the backend degrades gracefully to an in-memory store rather than failing the request.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 14, React 18, TypeScript, Tailwind CSS |
+| Backend | FastAPI (Python) |
+| Static Analysis | Semgrep |
+| AI | Groq API — Llama 3.3 70B |
+| Database | MySQL (Aiven, managed, SSL), with automatic in-memory fallback |
+| Hosting | Render (frontend + backend) |
+
+---
+
+## Setup
+
+**Backend**
 ```bash
 cd backend
-
-# Create & activate virtual environment
 python -m venv venv
-
-# On Windows (PowerShell):
-.\venv\Scripts\Activate.ps1
-# On Linux/macOS:
-source venv/bin/activate
-
-# Install dependencies
+.\venv\Scripts\Activate.ps1        # or: source venv/bin/activate
 pip install -r requirements.txt
-
-# Configure environment variables
-cp .env.example .env
-# Edit .env and supply your GROQ_API_KEY and MySQL credentials if applicable
-```
-
-#### MySQL Database Initialization (Optional)
-If running with MySQL, execute the following schema in your MySQL client:
-
-```sql
-CREATE DATABASE IF NOT EXISTS secureai_review;
-USE secureai_review;
-
-CREATE TABLE IF NOT EXISTS scans (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    source_type VARCHAR(50) NOT NULL,
-    source_ref TEXT NULL,
-    language VARCHAR(50) NOT NULL,
-    status VARCHAR(50) DEFAULT 'processing'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS findings (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    scan_id INT NOT NULL,
-    rule_id VARCHAR(255) NOT NULL,
-    severity VARCHAR(50) NOT NULL,
-    file_path VARCHAR(255) NOT NULL,
-    line_number INT NOT NULL,
-    raw_message TEXT NOT NULL,
-    ai_explanation TEXT NULL,
-    ai_fix_suggestion TEXT NULL,
-    ai_confidence VARCHAR(50) NULL,
-    severity_conflict BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (scan_id) REFERENCES scans(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-```
-
-#### Run the Backend:
-```bash
+cp .env.example .env               # add GROQ_API_KEY and MySQL credentials
 uvicorn app.main:app --reload --port 8000
 ```
-- Interactive API Docs: `http://localhost:8000/docs`
-- Health Check: `http://localhost:8000/health`
 
----
-
-### 2. Frontend Setup (`/frontend`)
-
+**Frontend**
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Configure environment variables
 cp .env.local.example .env.local
-# Default: NEXT_PUBLIC_API_URL=http://localhost:8000
-
-# Run development server
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
 
----
-
-## 🧪 Verification & Testing
-
-### Running Standalone Semgrep Test
+**Verify**
 ```bash
 cd backend
-.\venv\Scripts\python app\semgrep_runner.py
-```
-
-### Running End-to-End API Pipeline Test
-```bash
-cd backend
-.\venv\Scripts\python verify_e2e.py
+python app/semgrep_runner.py
+python verify_e2e.py
 ```
 
 ---
 
-## ☁️ Deployment Instructions
+## Security Design
 
-### Backend Deployment (Render)
-1. Create a new **Web Service** on [Render](https://render.com) connected to this repository with **Root Directory** set to `backend`.
-2. **Build Command**: `pip install -r requirements.txt`
-3. **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-4. **Environment Variables**:
-   - `GROQ_API_KEY`: Your Groq API key
-   - `MYSQL_HOST`: Remote MySQL host (e.g. Railway, PlanetScale, Aiven)
-   - `MYSQL_PORT`: `3306` (or provider port)
-   - `MYSQL_USER`: Database username
-   - `MYSQL_PASSWORD`: Database password
-   - `MYSQL_DB`: Database name (`secureai_review`)
-
-> [!IMPORTANT]
-> **Hosted MySQL Requirement**: `localhost` will not work from Render. You must provision a hosted MySQL database (e.g., Railway free MySQL add-on or Aiven) and set `MYSQL_HOST` accordingly before running in production.
-
-### Frontend Deployment (Vercel)
-1. Import the repository into [Vercel](https://vercel.com) with **Root Directory** set to `frontend`.
-2. **Framework Preset**: Next.js
-3. **Environment Variables**:
-   - `NEXT_PUBLIC_API_URL`: The deployed Render backend URL (e.g. `https://secureai-backend.onrender.com`)
+- Secrets redacted before reaching any external API
+- AI fixes are suggestions only, never auto-applied
+- Findings labeled by source (`semgrep` vs `ai_only`) — never presented as equally certain
+- Severity disagreements surfaced, not hidden
+- Scan endpoint rate-limited
+- Database connections enforced over SSL (Aiven managed MySQL)
 
 ---
 
-## ⚠️ Known Limitations
-- **Language Support**: Currently configured for Python, JavaScript, TypeScript, and Java snippets.
-- **Rate Limiting**: Uses an in-memory sliding window (5 requests / 60 seconds per IP); multi-instance horizontally scaled deployments should attach a Redis instance.
-- **Subprocess Isolation**: Semgrep runs in sandboxed temporary directories per request with a 60-second execution deadline.
-
----
-
-## 🗺️ Roadmap & Supported Features
-- [x] **Paste Code Snippet Scan**: Python, JavaScript, TypeScript, and Java AST pattern scanning.
-- [x] **File Upload Scan**: Drag-and-drop / file browser support with client-side 500KB validation.
-- [x] **GitHub Repository Full Scanning**: Shallow git cloning (`--depth 1`) in sandboxed temporary directories with full codebase scanning.
-- [ ] **One-Click Pull Request Creation**: Generating GitHub PRs with suggested remediations (auto-patching is intentionally disabled to keep developers in full control).
-- [ ] **Custom Ruleset Upload**: Support for teams to upload proprietary `.semgrep.yml` organization policies.
-- [ ] **CI/CD GitHub Action**: Direct integration into CI/CD pipelines as a blocking security gate.
+**HARSHAVARDHINI N** — CodeMyFYP Hackathon, Developer Productivity Track
