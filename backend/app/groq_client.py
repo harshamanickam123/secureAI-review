@@ -11,7 +11,7 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
-GROQ_MODEL = "llama-3.3-70b-versatile"
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 
 
 def _extract_json_payload(content: str) -> Optional[Dict[str, Any]]:

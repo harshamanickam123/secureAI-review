@@ -44,7 +44,7 @@ def _get_target_configs(language: str = "python") -> List[str]:
     configs = ["p/security-audit", "p/owasp-top-ten"]
 
     if norm_lang in ("javascript", "js", "typescript", "ts"):
-        configs.extend(["p/nodejsscan"])
+        configs.extend(["p/nodejsscan", "p/javascript"])
     elif norm_lang in ("python", "py"):
         configs.append("p/python")
     elif norm_lang in ("java",):
