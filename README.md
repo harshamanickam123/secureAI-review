@@ -36,23 +36,43 @@ Static analysis stays the source of truth. AI never gets to invent a vulnerabili
 
 ### Dashboard
 
+
+
 ![Dashboard](docs/screenshots/input.png)
+
+
 
 ### Code Input
 
+
+
 ![Code Input](docs/screenshots/input2.png)
+
+
 
 ### GitHub Repository Input
 
+
+
 ![GitHub Repository Input](docs/screenshots/input3.png)
+
+
 
 ### Scanning
 
+
+
 ![Scanning](docs/screenshots/scan.png)
+
+
 
 ### Security Findings & AI Explanations
 
+
+
 ![Security Findings and AI Explanations](docs/screenshots/scan1.png)
+
+
 
 ---
 
